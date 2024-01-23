@@ -45,7 +45,7 @@ namespace Brazil.EFCore.Extensions
                             if (!fields.ContainsKey(prop.Name))
                                 continue;
 
-                            if (dataReader[prop.Name].Equals(System.DBNull.Value))
+                            if (dataReader[prop.Name].Equals(DBNull.Value))
                                 continue;
 
                             prop.SetValue(entity, dataReader[prop.Name], null);

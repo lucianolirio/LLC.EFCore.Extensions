@@ -145,51 +145,6 @@ namespace Brazil.EFCore.Extensions
             return dataTable;
         }
 
-        //internal static DataTable GetDataTable2<T>(this DbContext context, List<T> list)
-        //{
-        //    var type = list.First().GetType();
-
-        //    var entityType = context.Model.FindEntityType(type).FindDiscriminatorProperty();
-        //    var entityTypeValue = context.Model.FindEntityType(type).GetDefaultDiscriminatorValue();
-        //    var entityTypeName = context.Model.FindEntityType(type).GetDiscriminatorPropertyName();
-
-        //    var discriminatorValue = context.GetDiscriminatorValue(type);
-        //    //var annotations = context.GetAnnotations(type);
-        //    var properties = context.GetProperties(type);
-
-        //    var result = context.CreateTable(type);
-        //    object[] param = new object[result.Columns.Count];
-
-        //    foreach (var entity in list)
-        //    {
-
-        //        for (int i = 0; i < param.Length; i++)
-        //        {
-        //            var property = properties[i];
-
-        //            if (property.IsShadowProperty())
-        //            {
-        //                param[i] = discriminatorValue;
-        //            }
-        //            else
-        //            {
-        //                param[i] = property.PropertyInfo.GetValue(entity, null);
-
-        //                if (param[i] == null)
-        //                {
-        //                    //var anotation = annotations[property.Name];
-        //                    //if (anotation.DefaultValue != null)
-        //                    //    param[i] = anotation.DefaultValue;
-        //                }
-        //            }
-        //        }
-
-        //        result.Rows.Add(param);
-        //    }
-
-        //    return result;
-        //}
-
         internal static SqlBulkCopy GetSqlBulkCopy(this DbContext context, IDbContextTransaction transaction)
         {
             var connecteion = (SqlConnection)context.Database.GetDbConnection();
@@ -281,56 +236,12 @@ namespace Brazil.EFCore.Extensions
             }
         }
 
-        //private static void BulkInsertInternal<T>(this DbContext context, List<T> list)
-        //{
-        //    using (var transaction = context.Database.BeginTransaction())
-        //    {
-        //        try
-        //        {
-        //            var grupos = (from i in list
-        //                          group i by i.GetType() into g
-        //                          select new { Tipo = g.Key, Itens = g.ToList() }).ToList();
-
-        //            foreach (var item in grupos)
-        //            {
-        //                using (var bulkCopy = context.GetSqlBulkCopy(transaction))
-        //                {
-        //                    var dataTable = context.GetDataTable(item.Itens);
-
-        //                    if (dataTable.Columns.Count == 0)
-        //                        return;
-
-        //                    bulkCopy.DestinationTableName = dataTable.TableName;
-
-        //                    foreach (DataColumn column in dataTable.Columns)
-        //                    {
-        //                        bulkCopy.ColumnMappings.Add(column.ColumnName, column.ColumnName);
-        //                    }
-
-        //                    bulkCopy.WriteToServer(dataTable);
-        //                    dataTable.Rows.Clear();
-
-        //                    context.SetIdentityValue(list, transaction);
-        //                }
-        //            }
-
-        //            context.Database.CommitTransaction();
-        //        }
-        //        catch (Exception)
-        //        {
-        //            context.Database.RollbackTransaction();
-        //            throw;
-        //        }
-        //    }
-        //}
-
-
         public static void BulkInsert<T>(this DbContext context, List<T> list)
         {
             lock (locker) { context.BulkInsertInternal(list); }
         }
 
-        public static void BulkInsert<T>(this DbContext context, List<T> list, int size)
+        public static void BulkInsert<T>(this DbContext context, List<T> list, int size = int.MaxValue)
         {
             lock (locker)
             {
