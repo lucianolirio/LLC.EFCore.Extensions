@@ -1,11 +1,13 @@
-﻿using Microsoft.Data.SqlClient;
+﻿using Brazil.EFCore.Extensions;
+using LLC.EFCore.Extensions;
+using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.ChangeTracking.Internal;
 using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Storage;
 using System.Data;
 
-namespace Brazil.EFCore.Extensions;
+namespace LLC.EFCore.Extensions;
 
 public static class BulkInsertExtension
 {
@@ -161,7 +163,7 @@ public static class BulkInsertExtension
         using (var command = context.Database.GetDbConnection().CreateCommand())
         {
             command.Transaction = (SqlTransaction)transaction.GetDbTransaction();
-            command.CommandText = String.Format("Select top {0} {1} from {2} order by 1 desc", list.Count, pk.Name, context.GetFullTableName(typeof(T)));
+            command.CommandText = string.Format("Select top {0} {1} from {2} order by 1 desc", list.Count, pk.Name, context.GetFullTableName(typeof(T)));
 
             using (var reader = command.ExecuteReader())
             {

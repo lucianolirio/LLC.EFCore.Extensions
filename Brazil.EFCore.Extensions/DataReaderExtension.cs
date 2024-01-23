@@ -2,12 +2,12 @@
 using System.Reflection;
 using System.Reflection.Emit;
 
-namespace Brazil.EFCore.Extensions;
+namespace LLC.EFCore.Extensions;
 
 internal static class DataReaderExtension
 {
     private static readonly Dictionary<string, Type> _typeCache = new Dictionary<string, Type>();
-    private const string Namespace = "Brazil.EFCore.Extensions";
+    private const string Namespace = "LLC.EFCore.Extensions";
 
     public static Type EntityFactoryByDataReader2(this IDataReader dataReader, string entityName)
     {
@@ -22,8 +22,6 @@ internal static class DataReaderExtension
         AssemblyBuilder assemblyBuilder = AssemblyBuilder.DefineDynamicAssembly(new AssemblyName(Namespace), AssemblyBuilderAccess.RunAndCollect);
         ModuleBuilder moduleBuilder = assemblyBuilder.DefineDynamicModule(Namespace);
         TypeBuilder typeBuilder = moduleBuilder.DefineType(entityName, TypeAttributes.Class | TypeAttributes.Public);
-
-        ConstructorBuilder ctorBuilder = typeBuilder.DefineDefaultConstructor(MethodAttributes.Public);
 
         MethodAttributes getSetAttr = MethodAttributes.Public | MethodAttributes.HideBySig | MethodAttributes.SpecialName;
         ILGenerator ilGenerator;
@@ -61,8 +59,7 @@ internal static class DataReaderExtension
 
     public static Type EntityFactoryByDataReader(this IDataReader dataReader, string entityName)
     {
-
-        string nspace = "Brazil.EFCore.Extensions";
+        string nspace = "LLC.EFCore.Extensions";
         entityName = string.IsNullOrEmpty(entityName) ? "Query" : entityName;
 
         // Our intermediate language generator
@@ -86,7 +83,7 @@ internal static class DataReaderExtension
             // Two fields: m_firstname, m_lastname
             FieldBuilder fBuilderField = objectBuilder.DefineField("_" + name, typeField, FieldAttributes.Private);
             // Two properties for this object: FirstName, LastName
-            PropertyBuilder pBuilderField = objectBuilder.DefineProperty(name, System.Reflection.PropertyAttributes.HasDefault, typeField, null);
+            PropertyBuilder pBuilderField = objectBuilder.DefineProperty(name, PropertyAttributes.HasDefault, typeField, null);
             // get,set accessors for FirstName
             MethodBuilder mGetFieldBuilder = objectBuilder.DefineMethod("get_" + name, getSetAttr, typeField, Type.EmptyTypes);
             // Code generation

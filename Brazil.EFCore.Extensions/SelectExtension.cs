@@ -2,7 +2,7 @@
 using System.Data;
 using System.Reflection;
 
-namespace Brazil.EFCore.Extensions;
+namespace LLC.EFCore.Extensions;
 
 public static class SelectExtension
 {
