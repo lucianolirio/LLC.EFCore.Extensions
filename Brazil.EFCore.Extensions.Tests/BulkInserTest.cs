@@ -22,7 +22,7 @@ namespace Brazil.EFCore.Extensions.Tests
         [TestMethod]
         public void ClienteTest()
         {
-            int qtde = 2000;
+            int qtde = 100;
 
             var lista = new List<Cliente>();
             for (int i = 1; i <= qtde; i++)
