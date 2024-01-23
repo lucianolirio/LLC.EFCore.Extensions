@@ -95,7 +95,7 @@ namespace Brazil.EFCore.Extensions
             return result;
         }
 
-        internal static DataTable GetDataTable<T>(this DbContext context, List<T> list)
+        internal static DataTable GetDataTable<T>(this DbContext context, ICollection<T> list)
         {
             var type = list.First().GetType();
             var entityType = context.Model.FindEntityType(type);
@@ -151,12 +151,14 @@ namespace Brazil.EFCore.Extensions
             return result;
         }
 
-        private static void SetIdentityValue<T>(this DbContext context, List<T> list, IDbContextTransaction transaction)
+        private static void SetIdentityValue<T>(this DbContext context, ICollection<T> list, IDbContextTransaction transaction)
         {
             var pk = context.GetPrimaryKeys(typeof(T)).FirstOrDefault();
 
             if (pk == null || pk.ValueGenerated != ValueGenerated.OnAdd)
                 return;
+
+            var localList = list.ToList();
 
             using (var command = context.Database.GetDbConnection().CreateCommand())
             {
@@ -173,7 +175,7 @@ namespace Brazil.EFCore.Extensions
                     int i = list.Count;
                     while (reader.Read())
                     {
-                        key.SetValue(list[--i], reader[pk.Name]);
+                        key.SetValue(localList[--i], reader[pk.Name]);
                     }
                 }
             }
@@ -193,7 +195,7 @@ namespace Brazil.EFCore.Extensions
         }
 
 
-        private static void BulkInsertInternal<T>(this DbContext context, List<T> list)
+        private static void BulkInsertInternal<T>(this DbContext context, ICollection<T> list)
         {
             using (var transaction = context.Database.BeginTransaction())
             {
@@ -228,12 +230,12 @@ namespace Brazil.EFCore.Extensions
             }
         }
 
-        public static void BulkInsert<T>(this DbContext context, List<T> list)
+        public static void BulkInsert<T>(this DbContext context, ICollection<T> list)
         {
             lock (locker) { context.BulkInsertInternal(list); }
         }
 
-        public static void BulkInsert<T>(this DbContext context, List<T> list, int size = int.MaxValue)
+        public static void BulkInsert<T>(this DbContext context, ICollection<T> list, int size = int.MaxValue)
         {
             lock (locker)
             {
