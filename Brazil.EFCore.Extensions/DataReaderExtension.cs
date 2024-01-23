@@ -6,6 +6,59 @@ namespace Brazil.EFCore.Extensions;
 
 internal static class DataReaderExtension
 {
+    private static readonly Dictionary<string, Type> _typeCache = new Dictionary<string, Type>();
+    private const string Namespace = "Brazil.EFCore.Extensions";
+
+    public static Type EntityFactoryByDataReader2(this IDataReader dataReader, string entityName)
+    {
+        entityName = string.IsNullOrEmpty(entityName) ? "Query" : entityName;
+
+        // Use caching to avoid regenerating the same type
+        if (_typeCache.TryGetValue(entityName, out var cachedType))
+        {
+            return cachedType;
+        }
+
+        AssemblyBuilder assemblyBuilder = AssemblyBuilder.DefineDynamicAssembly(new AssemblyName(Namespace), AssemblyBuilderAccess.RunAndCollect);
+        ModuleBuilder moduleBuilder = assemblyBuilder.DefineDynamicModule(Namespace);
+        TypeBuilder typeBuilder = moduleBuilder.DefineType(entityName, TypeAttributes.Class | TypeAttributes.Public);
+
+        ConstructorBuilder ctorBuilder = typeBuilder.DefineDefaultConstructor(MethodAttributes.Public);
+
+        MethodAttributes getSetAttr = MethodAttributes.Public | MethodAttributes.HideBySig | MethodAttributes.SpecialName;
+        ILGenerator ilGenerator;
+
+        for (int i = 0; i < dataReader.FieldCount; i++)
+        {
+            Type fieldType = dataReader.GetFieldType(i);
+            string fieldName = dataReader.GetName(i);
+            FieldBuilder fieldBuilder = typeBuilder.DefineField("_" + fieldName, fieldType, FieldAttributes.Private);
+
+            PropertyBuilder propertyBuilder = typeBuilder.DefineProperty(fieldName, PropertyAttributes.HasDefault, fieldType, null);
+
+            MethodBuilder getMethodBuilder = typeBuilder.DefineMethod("get_" + fieldName, getSetAttr, fieldType, Type.EmptyTypes);
+            ilGenerator = getMethodBuilder.GetILGenerator();
+            ilGenerator.Emit(OpCodes.Ldarg_0);
+            ilGenerator.Emit(OpCodes.Ldfld, fieldBuilder);
+            ilGenerator.Emit(OpCodes.Ret);
+
+            MethodBuilder setMethodBuilder = typeBuilder.DefineMethod("set_" + fieldName, getSetAttr, null, new Type[] { fieldType });
+            ilGenerator = setMethodBuilder.GetILGenerator();
+            ilGenerator.Emit(OpCodes.Ldarg_0);
+            ilGenerator.Emit(OpCodes.Ldarg_1);
+            ilGenerator.Emit(OpCodes.Stfld, fieldBuilder);
+            ilGenerator.Emit(OpCodes.Ret);
+
+            propertyBuilder.SetGetMethod(getMethodBuilder);
+            propertyBuilder.SetSetMethod(setMethodBuilder);
+        }
+
+        Type createdType = typeBuilder.CreateType();
+        _typeCache[entityName] = createdType; // Cache the created type
+
+        return createdType;
+    }
+
     public static Type EntityFactoryByDataReader(this IDataReader dataReader, string entityName)
     {
 
