@@ -101,7 +101,7 @@ namespace Brazil.EFCore.Extensions
             var entityType = context.Model.FindEntityType(type);
             var discriminatorProperty = entityType.FindDiscriminatorProperty();
             var entityTypeName = entityType.GetDiscriminatorPropertyName();
-            var entityTypeValue = entityType.GetDefaultDiscriminatorValue();
+            var discriminatorPropertyValue = entityType.GetDefaultDiscriminatorValue();
 
             if (entityType == null)
                 throw new InvalidOperationException("O tipo especificado não é uma entidade conhecida no contexto.");
@@ -117,26 +117,18 @@ namespace Brazil.EFCore.Extensions
                 var row = dataTable.NewRow();
                 foreach (var property in entityType.GetProperties())
                 {
-
-                    try
+                    if (property.ValueGenerated != ValueGenerated.OnAdd)
                     {
-                        if (property.ValueGenerated != ValueGenerated.OnAdd)
+                        if (discriminatorProperty.Equals(property))
                         {
-                            if (discriminatorProperty.Equals(property))
-                            {
-                                row[property.Name] = entityTypeValue;
-                            }
-                            else
-                            {
-                                var value = property.PropertyInfo.GetValue(entity);
-                                var defaultValue = property.FindAnnotation("Relational:DefaultValue");
-                                row[property.Name] = value ?? defaultValue?.Value ?? DBNull.Value;
-                            }
+                            row[property.Name] = discriminatorPropertyValue;
                         }
-                    }
-                    catch
-                    {
-
+                        else
+                        {
+                            var value = property.PropertyInfo.GetValue(entity);
+                            var defaultValue = property.FindAnnotation("Relational:DefaultValue");
+                            row[property.Name] = value ?? defaultValue?.Value ?? DBNull.Value;
+                        }
                     }
                 }
                 dataTable.Rows.Add(row);
