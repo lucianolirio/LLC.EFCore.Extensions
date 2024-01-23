@@ -181,20 +181,6 @@ namespace Brazil.EFCore.Extensions
             }
         }
 
-        private static string GetTableNamex(this DbContext context, Type entityType)
-        {
-            var model = context.Model;
-            var entityTypeInfo = model.FindEntityType(entityType);
-
-            if (entityTypeInfo == null)
-            {
-                throw new InvalidOperationException($"O tipo {entityType.Name} não é uma entidade conhecida no contexto.");
-            }
-
-            return entityTypeInfo.GetTableName();
-        }
-
-
         private static void BulkInsertInternal<T>(this DbContext context, ICollection<T> list)
         {
             using (var transaction = context.Database.BeginTransaction())
@@ -212,7 +198,7 @@ namespace Brazil.EFCore.Extensions
                         if (dataTable.Columns.Count == 0)
                             return;
 
-                        bulkCopy.DestinationTableName = GetTableNamex(context, list.First().GetType());
+                        bulkCopy.DestinationTableName = context.GetFullTableName(list.First().GetType());
 
                         foreach (DataColumn column in dataTable.Columns)
                         {
