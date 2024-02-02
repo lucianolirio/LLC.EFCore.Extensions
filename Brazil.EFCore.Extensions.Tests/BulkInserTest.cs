@@ -1,4 +1,5 @@
 using Brazil.EFCore.Extensions.Tests.BulkInser;
+using LLC.EFCore.Extensions;
 using Microsoft.EntityFrameworkCore;
 
 namespace Brazil.EFCore.Extensions.Tests
